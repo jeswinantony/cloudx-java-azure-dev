@@ -1,5 +1,6 @@
 package com.chtrembl.petstoreapp.service;
 
+import com.chtrembl.petstoreapp.client.OrderItemsReserverClient;
 import com.chtrembl.petstoreapp.client.OrderServiceClient;
 import com.chtrembl.petstoreapp.exception.OrderServiceException;
 import com.chtrembl.petstoreapp.model.Order;
@@ -12,6 +13,7 @@ import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -30,8 +32,12 @@ public class OrderManagementService {
 
     private final User sessionUser;
     private final OrderServiceClient orderServiceClient;
+    private final OrderItemsReserverClient orderItemsReserverClient;
 
-    public void updateOrder(long productId, int quantity, boolean completeOrder) {
+    @Value("${petstore.service.order-items-reserver.enabled:true}")
+    private final boolean isOrderItemsReserverEnabled = true;
+
+    public void updateOrder(long productId, int quantity, boolean completeOrder, String sessionId) {
         MDC.put(OPERATION, "updateOrder");
         MDC.put(PRODUCT_ID, String.valueOf(productId));
         MDC.put(QUANTITY, String.valueOf(quantity));
@@ -47,6 +53,9 @@ public class OrderManagementService {
             String orderJSON = serializeOrder(updatedOrder);
 
             Order resultOrder = orderServiceClient.createOrUpdateOrder(orderJSON);
+            if (isOrderItemsReserverEnabled) {
+                orderItemsReserverClient.updateOrderItems(sessionId, orderJSON);
+            }
             log.info("Successfully updated order: {}", resultOrder);
 
         } catch (FeignException fe) {
