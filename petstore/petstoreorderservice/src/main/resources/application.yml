@@ -18,6 +18,10 @@ springdoc:
     tagsSorter: alpha
   show-actuator: false
 
+azure:
+  cosmos:
+    key: ${AZURE_COSMOS_KEY}
+
 management:
   endpoints:
     web:
