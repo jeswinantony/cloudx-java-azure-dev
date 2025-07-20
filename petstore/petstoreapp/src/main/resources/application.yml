@@ -6,9 +6,6 @@ petstore:
       url: ${PETSTOREPRODUCTSERVICE_URL:http://localhost:8082}
     order:
       url: ${PETSTOREORDERSERVICE_URL:http://localhost:8083}
-    order-items-reserver:
-      url: ${ORDERITEMSRESERVER_URL:http://localhost:7071}
-      enabled: ${ORDERITEMSRESERVER_ENABLED:false}
   security:
     # Enable this together with 'cloud.azure.active-directory.b2c.enabled = true' in Module 10
     enabled: ${PETSTORE_SECURITY_ENABLED:false}
@@ -50,6 +47,10 @@ spring:
           # Enable this together with 'petstore.service.security.enabled = true' in Module 10
           enabled: ${PETSTOREAPP_B2C_ENABLED:false}
           # Add base-uri, client-id, client-secret, login-flow, logout-success-url, and user-flows
+  jms:
+    servicebus:
+      connection-string: ${SERVICE_BUS_CONNECTION_STRING}
+      pricing-tier: Standard
 logging:
   level:
     root: INFO
