@@ -2,7 +2,7 @@ spring:
   application:
     name: petstorepetservice
   datasource:
-    url: jdbc:postgresql://atpetstore.postgres.database.azure.com:5432/petstorepetservice_db?currentSchema=public
+    url: jdbc:postgresql://${PETSTOREPETSERVICE_DB_ENDPOINT:atpetstore.postgres.database.azure.com}:5432/petstorepetservice_db?currentSchema=public
     username: ${PETSTOREPETSERVICE_DB_USERNAME}
     password: ${PETSTOREPETSERVICE_DB_PASSWORD}
   jpa:

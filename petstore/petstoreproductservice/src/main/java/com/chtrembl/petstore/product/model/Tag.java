@@ -1,5 +1,9 @@
 package com.chtrembl.petstore.product.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,8 +13,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Entity
+@Table(name = "tag")
 public class Tag {
+    @Id
     private Long id;
+
+    @Column(name = "name", nullable = false, unique = true, length = 64)
     private String name;
 
     public Tag name(String name) {
