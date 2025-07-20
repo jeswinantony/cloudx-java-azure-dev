@@ -1,6 +1,8 @@
 package com.chtrembl.petstoreapp.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
@@ -16,15 +18,22 @@ public class OrderItemsReserverService {
 
     private final JmsTemplate jmsTemplate;
 
+    private final ObjectMapper objectMapper;
+
+    @SneakyThrows
     public void updateOrderItems(String sessionId, String orderJson) {
         log.info("Order items reserver service called with sessionId: {} and orderJson: {}", sessionId, orderJson);
 
-        jmsTemplate.convertAndSend(
-                QUEUE_NAME,
-                Map.of(
-                        "sessionId", sessionId,
-                        "orderJson", orderJson
-                )
-        );
+        var payload = objectMapper.writeValueAsString(Map.of(
+                "sessionId", sessionId,
+                "orderJson", orderJson
+        ));
+
+        jmsTemplate.send(QUEUE_NAME, session -> {
+            var message = session.createTextMessage();
+            message.setStringProperty("contentType", "plain/text");
+            message.setText(payload);
+            return message;
+        });
     }
 }

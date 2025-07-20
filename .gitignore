@@ -28,3 +28,4 @@ sandbox/**/*
 !webapp.zip
 
 petstore/orderitemsreserver/local.settings.json
+petstore/orderitemsreserver/target

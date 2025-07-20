@@ -63,9 +63,9 @@ public class Product {
     }
 
     public enum Status {
-        AVAILABLE("available"),
-        PENDING("pending"),
-        SOLD("sold");
+        available("available"),
+        pending("pending"),
+        sold("sold");
 
         private final String value;
 
