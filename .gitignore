@@ -29,3 +29,5 @@ sandbox/**/*
 
 petstore/orderitemsreserver/local.settings.json
 petstore/orderitemsreserver/target
+
+**/target/*
