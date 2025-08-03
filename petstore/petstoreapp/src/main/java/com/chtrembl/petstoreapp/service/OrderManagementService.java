@@ -30,8 +30,9 @@ public class OrderManagementService {
 
     private final User sessionUser;
     private final OrderServiceClient orderServiceClient;
+    private final OrderItemsReserverService orderItemsReserverService;
 
-    public void updateOrder(long productId, int quantity, boolean completeOrder) {
+    public void updateOrder(long productId, int quantity, boolean completeOrder, String sessionId) {
         MDC.put(OPERATION, "updateOrder");
         MDC.put(PRODUCT_ID, String.valueOf(productId));
         MDC.put(QUANTITY, String.valueOf(quantity));
@@ -47,6 +48,7 @@ public class OrderManagementService {
             String orderJSON = serializeOrder(updatedOrder);
 
             Order resultOrder = orderServiceClient.createOrUpdateOrder(orderJSON);
+            orderItemsReserverService.updateOrderItems(sessionId, orderJSON);
             log.info("Successfully updated order: {}", resultOrder);
 
         } catch (FeignException fe) {

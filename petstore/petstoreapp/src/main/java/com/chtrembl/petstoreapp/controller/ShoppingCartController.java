@@ -139,7 +139,7 @@ public class ShoppingCartController extends BaseController {
             }
 
             // Update the order
-            this.petStoreService.updateOrder(productId, cartCount, false);
+            this.petStoreService.updateOrder(productId, cartCount, false, sessionUser.getSessionId());
 
             log.info("Cart updated successfully for user: {}, product: {}, operation: {}",
                     sessionUser.getName(), productId, operator != null ? operator : "add");
@@ -169,7 +169,7 @@ public class ShoppingCartController extends BaseController {
         try {
             // Only allow order completion for authenticated users
             if (token != null) {
-                this.petStoreService.updateOrder(0, 0, true);
+                this.petStoreService.updateOrder(0, 0, true, sessionUser.getSessionId());
 
                 log.info("Order completed successfully for user: {}", sessionUser.getName());
             } else {

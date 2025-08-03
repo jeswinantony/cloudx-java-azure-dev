@@ -21,18 +21,20 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private static final String ORDERS = "orders";
-    private final CacheManager cacheManager;
+//    private final CacheManager cacheManager;
     private final ProductService productService;
+    private final OrderRepository orderRepository;
 
     @Cacheable(ORDERS)
     public Order createOrder(String orderId) {
         log.info("Creating new order with id: {} and caching it", orderId);
-        return Order.builder()
+        var order = Order.builder()
                 .id(orderId)
                 .products(new ArrayList<>())
                 .status(Order.Status.PLACED)
                 .complete(false)
                 .build();
+        return orderRepository.save(order);
     }
 
     /**
@@ -50,22 +52,12 @@ public class OrderService {
             throw new IllegalArgumentException("Order ID cannot be null or empty");
         }
 
-        // Try to get from cache
-        Cache cache = cacheManager.getCache(ORDERS);
-        if (cache != null) {
-            Cache.ValueWrapper wrapper = cache.get(orderId);
-            if (wrapper != null) {
-                Order cachedOrder = (Order) wrapper.get();
-                if (cachedOrder != null) {
-                    log.info("Found existing order: {}", orderId);
-                    return cachedOrder;
-                }
-            }
-        }
-
-        // Order not found - throw exception instead of creating new one
-        log.warn("Order not found: {}", orderId);
-        throw new OrderNotFoundException("Order with ID " + orderId + " not found");
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> {
+                    // Order not found - throw exception instead of creating new one
+                    log.warn("Order not found: {}", orderId);
+                    return new OrderNotFoundException("Order with ID " + orderId + " not found");
+                });
     }
 
     /**
@@ -74,28 +66,12 @@ public class OrderService {
      */
     public Order getOrCreateOrder(String orderId) {
         log.info("Getting or creating order: {}", orderId);
-
-        // Try to get from cache first
-        Cache cache = cacheManager.getCache(ORDERS);
-        if (cache != null) {
-            Cache.ValueWrapper wrapper = cache.get(orderId);
-            if (wrapper != null) {
-                Order cachedOrder = (Order) wrapper.get();
-                if (cachedOrder != null) {
-                    log.info("Found existing order for update: {}", orderId);
-                    return cachedOrder;
-                }
-            }
-        }
-
-        // Create new order if not found
-        log.info("Creating new order for update: {}", orderId);
-        Order newOrder = createOrder(orderId);
-        if (cache != null) {
-            cache.put(orderId, newOrder);
-        }
-
-        return newOrder;
+        return orderRepository.findById(orderId)
+                .orElseGet(() -> {
+                    // Create new order if not found
+                    log.info("Creating new order for update: {}", orderId);
+                    return createOrder(orderId);
+                });
     }
 
     public Order updateOrder(Order order) {
@@ -108,34 +84,28 @@ public class OrderService {
         }
 
         // Use getOrCreateOrder for updates (allows creation)
-        Order cachedOrder = getOrCreateOrder(order.getId());
+        Order persistedOrder = getOrCreateOrder(order.getId());
 
         // Update basic fields
-        cachedOrder.setEmail(order.getEmail());
+        persistedOrder.setEmail(order.getEmail());
 
         // Update status only if new status is provided
         if (order.getStatus() != null) {
-            cachedOrder.setStatus(order.getStatus());
+            persistedOrder.setStatus(order.getStatus());
         }
 
         // Handle completion status
         Boolean isComplete = order.getComplete();
         if (isComplete != null && isComplete) {
             log.info("Completing order {} - clearing products", order.getId());
-            cachedOrder.setProducts(new ArrayList<>());
-            cachedOrder.setComplete(true);
+            persistedOrder.setProducts(new ArrayList<>());
+            persistedOrder.setComplete(true);
         } else {
-            cachedOrder.setComplete(isComplete != null ? isComplete : false);
-            updateOrderProducts(cachedOrder, order.getProducts());
+            persistedOrder.setComplete(isComplete != null ? isComplete : false);
+            updateOrderProducts(persistedOrder, order.getProducts());
         }
 
-        // Explicitly update cache
-        Cache cache = cacheManager.getCache(ORDERS);
-        if (cache != null) {
-            cache.put(order.getId(), cachedOrder);
-        }
-
-        return cachedOrder;
+        return orderRepository.save(persistedOrder);
     }
 
     /**

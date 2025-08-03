@@ -14,30 +14,27 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ProductService {
 
-    private final DataPreload dataPreload;
+    private final ProductRepository productRepository;
 
     public List<Product> findProductsByStatus(List<String> status) {
         log.info("Finding products with status: {}", status);
 
-        return dataPreload.getProducts().stream()
-                .filter(product -> status.contains(product.getStatus().getValue()))
-                .toList();
+        var statuses = status.stream().map(Product.Status::valueOf).toList();
+        return productRepository.findByStatusIn(statuses);
     }
 
     public Optional<Product> findProductById(Long productId) {
         log.info("Finding product with id: {}", productId);
 
-        return dataPreload.getProducts().stream()
-                .filter(product -> product.getId().equals(productId))
-                .findFirst();
+        return productRepository.findById(productId);
     }
 
     public List<Product> getAllProducts() {
         log.info("Getting all products");
-        return dataPreload.getProducts();
+        return productRepository.findAll();
     }
 
     public int getProductCount() {
-        return dataPreload.getProducts().size();
+        return (int) productRepository.count();
     }
 }

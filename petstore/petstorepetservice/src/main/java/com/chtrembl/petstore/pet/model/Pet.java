@@ -3,6 +3,7 @@ package com.chtrembl.petstore.pet.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
+import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -17,23 +18,43 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Entity
+@Table(name = "pet")
 public class Pet {
+    @Id
     private Long id;
 
     @Valid
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(
+            name = "category_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_category", value = ConstraintMode.CONSTRAINT)
+    )
     private Category category;
 
     @NotNull
+    @Column(name = "name", nullable = false, unique = true, length = 64)
     private String name;
 
     @JsonProperty("photoURL")
     @NotNull
+    @Column(name = "photoURL", nullable = false, length = 255)
     private String photoURL;
 
     @Valid
     @Builder.Default
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "pet_tag",
+            joinColumns = @JoinColumn(name = "pet_id", nullable = false),
+            inverseJoinColumns = @JoinColumn(name = "tag_id", nullable = false),
+            uniqueConstraints = @UniqueConstraint(name = "uk_pet_tag", columnNames = {"pet_id", "tag_id"})
+    )
     private List<Tag> tags = new ArrayList<>();
 
+    @Column(name = "status", nullable = false, length = 64)
+    @Enumerated(EnumType.STRING)
     private Status status;
 
     public Pet name(String name) {
@@ -42,9 +63,9 @@ public class Pet {
     }
 
     public enum Status {
-        AVAILABLE("available"),
-        PENDING("pending"),
-        SOLD("sold");
+        available("available"),
+        pending("pending"),
+        sold("sold");
 
         private final String value;
 

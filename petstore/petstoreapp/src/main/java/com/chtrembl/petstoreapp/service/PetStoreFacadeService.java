@@ -28,8 +28,8 @@ public class PetStoreFacadeService {
         return productManagementService.getProductsByCategory(category, tags);
     }
 
-    public void updateOrder(long productId, int quantity, boolean completeOrder) {
-        orderManagementService.updateOrder(productId, quantity, completeOrder);
+    public void updateOrder(long productId, int quantity, boolean completeOrder, String sessionId) {
+        orderManagementService.updateOrder(productId, quantity, completeOrder, sessionId);
     }
 
     public Order retrieveOrder(String orderId) {
