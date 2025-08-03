@@ -134,6 +134,10 @@
             <groupId>com.azure.spring</groupId>
             <artifactId>spring-cloud-azure-starter-servicebus-jms</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.azure.spring</groupId>
+            <artifactId>spring-cloud-azure-starter-active-directory-b2c</artifactId>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
